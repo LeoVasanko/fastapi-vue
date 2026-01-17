@@ -198,7 +198,7 @@ class Frontend:
         except asyncio.CancelledError:
             return
 
-    def route(self, app: FastAPI, mount_path="/", *, name="static"):
+    def route(self, app: FastAPI, mount_path="/", *, name="frontend"):
         """Register this frontend handler with a FastAPI app.
 
         Args:
@@ -206,9 +206,6 @@ class Frontend:
             mount_path: Path where the frontend should be mounted (default: "/")
             name: Route name for the handler
         """
-        # Skip routing if in dev mode and no files were indexed
-        if self.devmode and not getattr(self, "_devmode_paths", None):
-            return
         path = mount_path.rstrip("/") + "{path:path}"
         app.api_route(path, methods=["GET", "HEAD"], name=name)(self.handle)
 
@@ -227,10 +224,9 @@ class Frontend:
                 if name not in paths:
                     raise HTTPException(status_code=404)
             return JSONResponse(
-                status_code=503,
+                status_code=409,
                 content={
-                    "detail": "Frontend assets served by Vite in dev mode. "
-                    f"Connect via {_DEVMODE} instead."
+                    "detail": f"Frontend assets served by Vite in dev mode. Connect via {_DEVMODE} instead."
                 },
             )
 
