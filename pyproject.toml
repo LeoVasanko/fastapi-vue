@@ -1,0 +1,22 @@
+[project]
+name = "fastapi-vue"
+dynamic = ["version"]
+description = "Serves Vue static files / SPA on a FastAPI app. Use fastapi-vue-setup to install."
+readme = "README.md"
+requires-python = ">=3.11"
+dependencies = [
+    "fastapi>=0.115.0",
+    "zstandard>=0.23.0",
+    "aeg>=0.9.0",
+]
+
+[project.urls]
+Homepage = "https://git.zi.fi/LeoVasanko/fastapi-vue"
+Repository = "https://github.com/LeoVasanko/fastapi-vue"
+
+[build-system]
+requires = ["hatchling", "hatch-vcs"]
+build-backend = "hatchling.build"
+
+[tool.hatch.version]
+source = "vcs"
