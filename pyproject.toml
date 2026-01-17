@@ -1,7 +1,7 @@
 [project]
 name = "fastapi-vue"
 dynamic = ["version"]
-description = "Serves Vue static files / SPA on a FastAPI app. Use fastapi-vue-setup to install."
+description = "Serves Vue assets on a FastAPI app. Use fastapi-vue-setup tool to add Vue build to your package."
 readme = "README.md"
 requires-python = ">=3.11"
 dependencies = [

@@ -101,7 +101,7 @@ class Frontend:
                 mime = mimetypes.guess_type(name)[0] or "application/octet-stream"
                 name = name.removesuffix(self.index)
                 data = p.read_bytes()
-                etag = mac(bytes(16), None, data)[:8].hex()
+                etag = mac(bytes(16), bytes(16), data)[:8].hex()
                 # Keep existing identical files as they are
                 if name in existing and existing[name][2]["etag"] == etag:
                     new[name] = existing[name]
