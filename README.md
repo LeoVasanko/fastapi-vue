@@ -1,18 +1,16 @@
 # fastapi-vue
 
-Implements static files routing with caching, compression and SPA support. Can be mounted at site root, unlike the built-in module.
-
-- Automatic zstd compression
-- ETag-based caching with immutable headers for hashed assets
-- SPA (Single Page Application) support
-- Favicon handling from hashed assets
-- Dev mode integration with Vite
+Implements Single-Page-App serving at site root with FastAPI, that the standard StaticFiles module cannot handle. This also caches and zstd compresses the files for lightning-fast operation. This is primarily meant for use with Vue frontend, but technically can host any static files in a similar manner.
 
 ## Installation
 
-```bash
-uv add fastapi-vue
+Script [fastapi-vue-setup](https://git.zi.fi/LeoVasanko/fastapi-vue-setup) should normally be used to convert or create a project with connection between FastAPI and Vue. The target project will depend on this package to serve its static files.
+
+```sh
+uvx fastapi-vue-setup --help
 ```
+
+Refer to instructions below for further configuration.
 
 ## Usage
 
@@ -21,11 +19,9 @@ from contextlib import asynccontextmanager
 from fastapi import FastAPI
 from fastapi_vue import Frontend
 
-# Point to your built frontend assets
 frontend = Frontend(
-    "path/to/frontend-build",
+    Path(__file__).with_name("frontend-build"),
     spa=True,
-    favicon="/assets/favicon.ico",
     cached=["/assets/"],
 )
 
@@ -36,7 +32,7 @@ async def lifespan(app: FastAPI):
 
 app = FastAPI(lifespan=lifespan)
 
-# All your other routes...
+# Add API routes here...
 
 # Final catch-all route for frontend files (keep at end of file)
 frontend.route(app, "/")
@@ -46,10 +42,6 @@ frontend.route(app, "/")
 
 - `directory`: Path to static files directory
 - `spa`: Enable SPA mode (serve index.html for unknown routes)
-- `cached`: Path prefixes for immutable cache headers (e.g., `["/assets/"]`)
-- `favicon`: Path prefix to serve at `/favicon.ico` (e.g., `"/assets/favicon.webp"`)
+- `cached`: Path prefixes for immutable cache headers (browser won't check for changes)
+- `favicon`: Path to serve at `/favicon.ico` (e.g., `"/logo.png"` will be served as `image/png`)
 - `zstdlevel`: Compression level (default: 18)
-
-## See also
-
-Script [fastapi-vue-setup](https://github.com/LeoVasanko/fastapi-vue-setup) to create a project with statically built Vue using this module, and Vite devmode support.
