@@ -4,10 +4,11 @@ import asyncio
 import mimetypes
 import os
 import time
+from base64 import urlsafe_b64encode
 from pathlib import Path, PurePath, PurePosixPath
 from wsgiref.handlers import format_date_time
 
-from aeg.aegis128x2 import mac
+from blake3 import blake3
 from fastapi import FastAPI, Request, Response
 from fastapi.concurrency import run_in_threadpool
 from fastapi.responses import JSONResponse, RedirectResponse
@@ -101,7 +102,7 @@ class Frontend:
                 mime = mimetypes.guess_type(name)[0] or "application/octet-stream"
                 name = name.removesuffix(self.index)
                 data = p.read_bytes()
-                etag = mac(bytes(16), bytes(16), data)[:8].hex()
+                etag = urlsafe_b64encode(blake3(data).digest(9)).decode()
                 # Keep existing identical files as they are
                 if name in existing and existing[name][2]["etag"] == etag:
                     new[name] = existing[name]
@@ -111,7 +112,7 @@ class Frontend:
                 mtime = p.stat().st_mtime
                 cached = any(name.startswith(prefix) for prefix in self.cached_paths)
                 headers = {
-                    "etag": etag,
+                    "etag": f'"{etag}"',
                     "last-modified": format_date_time(mtime),
                     "cache-control": (
                         "max-age=31536000, immutable" if cached else "no-cache"
