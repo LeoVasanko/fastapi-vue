@@ -1,6 +1,5 @@
 """FastAPI static file serving with zstd compression and SPA support."""
 
-import asyncio
 import mimetypes
 import os
 import time
@@ -89,6 +88,8 @@ class Frontend:
     def _load(self, existing: dict):
         """Load static files from disk with compression."""
         new: dict[str, tuple[bytes, bytes | None, dict]] = {}
+        if not self.base.exists():
+            raise ValueError(f"Frontend folder {self.base} not found (try uv build)")
         paths = [PurePath()]
         while paths:
             current = self.base / paths.pop(0)
@@ -175,28 +176,6 @@ class Frontend:
             f"{self.base.name}: {len(self.www)} files in {1000 * duration:.1f} ms | "
             f"zstd {len(compfiles)} files {1e-6 * raw:.2f}->{1e-6 * comp:.2f} MB ({ratio:.0f} %)"
         )
-
-    async def refresh_task(self, interval=1.0):
-        """Background task to watch for file changes (for development)."""
-        if self.devmode:
-            return  # No refresh needed in dev mode
-        try:
-            while True:
-                await asyncio.sleep(interval)
-                old = self.www
-                await self.load(log=False)
-                changes = []
-                changes += [
-                    f"{h.get('last-modified', '')} {n}"
-                    for n, (_, _, h) in sorted(self.www.items())
-                    if not (n in old and old[n][2] is h)
-                ]
-                deleted = set(old) - set(self.www)
-                changes += [f"Deleted {name}" for name in sorted(deleted)]
-                if changes:
-                    print("Updated static files:\n" + "\n".join(changes))
-        except asyncio.CancelledError:
-            return
 
     def route(self, app: FastAPI, mount_path="/", *, name="frontend"):
         """Register this frontend handler with a FastAPI app.
