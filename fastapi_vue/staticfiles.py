@@ -215,7 +215,7 @@ class Frontend:
 
         # Get paths and select handler based on mode (checked once, not per request)
         paths = self._devmode_paths if self.devmode else self.www.keys()
-        handler = _devmode_response if self.devmode else self._respond
+        handler = _devmode_respond if self.devmode else self._respond
         # Insert at the position where route() was called
         self._app.routes[self._ridx : self._ridx] = self._routes = [
             Route(
@@ -254,10 +254,10 @@ class Frontend:
             if name not in files:
                 raise HTTPException(status_code=404)
 
-        return _devmode_response() if self.devmode else self._respond(request, name)
+        return (_devmode_respond if self.devmode else self._respond)(request, name)
 
 
-def _devmode_response():
+def _devmode_respond(request: Request, name=""):
     """Return error response directing to Vite server."""
     return JSONResponse(
         status_code=409,
