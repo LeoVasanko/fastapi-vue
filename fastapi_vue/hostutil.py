@@ -21,7 +21,7 @@ def parse_endpoint(value: str | None, default_port: int = 0) -> list[dict]:
     - host -> [{host, port: default_port}]
     - [ipv6]:port -> [{host: ipv6, port}]
     - ipv6 (unbracketed) -> [{host: ipv6, port: default_port}]
-    - unix:/path -> [{uds: path}]
+    - /path or unix:/path -> [{uds: path}]
     """
     if not value:
         return [{"host": "localhost", "port": default_port}]
@@ -38,7 +38,9 @@ def parse_endpoint(value: str | None, default_port: int = 0) -> list[dict]:
         port = int(port_part)
         return [{"host": "0.0.0.0", "port": port}, {"host": "::", "port": port}]  # noqa: S104
 
-    # UNIX domain socket
+    # UNIX domain socket (unix:/path or just /path)
+    if value.startswith("/"):
+        return [{"uds": value}]
     if value.startswith("unix:"):
         uds_path = value[5:] or None
         if uds_path is None:
